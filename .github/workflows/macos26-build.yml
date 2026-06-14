@@ -1,0 +1,59 @@
+name: macOS 26 Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on macOS 26
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          ruby --version
+
+      - name: Install CocoaPods if needed
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            gem install cocoapods --user-install
+            echo "$HOME/.gem/ruby/$(ruby -e 'print RUBY_VERSION[/\d+\.\d+/]')/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Install dependencies
+        run: |
+          pod install --repo-update
+          xcodebuild -resolvePackageDependencies \
+            -workspace Thor.xcworkspace \
+            -scheme Thor
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -workspace Thor.xcworkspace \
+            -scheme Thor \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package app
+        run: |
+          APP_PATH="$(find build/DerivedData/Build/Products/Release -maxdepth 1 -name 'Thor.app' -print -quit)"
+          test -n "$APP_PATH"
+          ditto -c -k --keepParent "$APP_PATH" Thor-macos26.zip
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Thor-macos26
+          path: Thor-macos26.zip
