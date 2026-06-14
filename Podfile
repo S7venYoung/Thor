@@ -1,4 +1,4 @@
-platform :osx, '10.14'
+platform :osx, '12.0'
 use_frameworks!
 inhibit_all_warnings!
 
@@ -11,7 +11,8 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-      config.build_settings.delete 'MACOSX_DEPLOYMENT_TARGET'
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
     end
   end
 end

@@ -27,7 +27,22 @@ class ShortcutListViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
+
+        tableView.backgroundColor = .clear
+        tableView.enclosingScrollView?.drawsBackground = false
+        tableView.enclosingScrollView?.contentView.drawsBackground = false
+        tableView.usesAlternatingRowBackgroundColors = false
+        tableView.selectionHighlightStyle = .regular
+
+        [btnAdd, btnRemove].forEach { button in
+            button?.isBordered = true
+            button?.bezelStyle = .rounded
+            if #available(macOS 10.14, *) {
+                button?.contentTintColor = .labelColor
+            }
+        }
 
         tableView.registerForDraggedTypes([dragDropType])
 
@@ -46,14 +61,19 @@ class ShortcutListViewController: NSViewController {
             openPanel.directoryURL = URL(fileURLWithPath: appDir)
         }
         openPanel.beginSheetModal(for: view.window!, completionHandler: { (result) in
-            if result == NSApplication.ModalResponse.OK, let metaDataItem = NSMetadataItem(url: openPanel.urls.first!) {
-                let app = AppModel(item: metaDataItem)
-
-                AppsManager.manager.save(app, shortcut: nil)
-
-                self.tableView.reloadData()
-                self.tableView.scrollRowToVisible(self.apps.count - 1)
+            guard result == .OK, let url = openPanel.urls.first else {
+                return
             }
+
+            let app = NSMetadataItem(url: url).flatMap { AppModel(item: $0) } ?? AppModel(url: url)
+            guard let app = app else {
+                return
+            }
+
+            AppsManager.manager.save(app, shortcut: nil)
+
+            self.tableView.reloadData()
+            self.tableView.scrollRowToVisible(self.apps.count - 1)
         })
     }
 

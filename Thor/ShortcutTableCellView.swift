@@ -13,6 +13,13 @@ class ShortcutTableCellView: NSTableCellView {
 
     @IBOutlet weak var shortcutView: MASShortcutView!
 
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
     func configure(_ name: String,
                    icon: NSImage?,
                    shortcut: MASShortcut?,
