@@ -186,28 +186,28 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PkA-I4-Eeo">
-                                <rect key="frame" x="41" y="19" width="22" height="22"/>
+                                <rect key="frame" x="62" y="13" width="34" height="34"/>
                                 <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8g0-Nk-gkJ">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="IXM-DO-CdA"/>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="22" id="bRz-uc-Coo"/>
+                                    <constraint firstAttribute="height" constant="34" id="IXM-DO-CdA"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="34" id="bRz-uc-Coo"/>
                                 </constraints>
                                 <connections>
                                     <action selector="remove:" target="XfG-lQ-9wD" id="f2C-kB-pIt"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Qsh-Hx-foM">
-                                <rect key="frame" x="20" y="19" width="22" height="22"/>
+                                <rect key="frame" x="20" y="13" width="34" height="34"/>
                                 <buttonCell key="cell" type="smallSquare" bezelStyle="smallSquare" image="NSAddTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="XXi-Qz-DcN">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="22" id="AsC-Zw-bWK"/>
-                                    <constraint firstAttribute="height" constant="20" id="vYF-uQ-qrj"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="34" id="AsC-Zw-bWK"/>
+                                    <constraint firstAttribute="height" constant="34" id="vYF-uQ-qrj"/>
                                 </constraints>
                                 <connections>
                                     <action selector="add:" target="XfG-lQ-9wD" id="N6L-b4-wcP"/>
@@ -309,7 +309,7 @@
                             <constraint firstAttribute="bottom" secondItem="Qsh-Hx-foM" secondAttribute="bottom" constant="20" id="2EM-0U-1PR"/>
                             <constraint firstItem="Qsh-Hx-foM" firstAttribute="top" secondItem="fZm-UD-Mz7" secondAttribute="bottom" constant="20" id="AVT-3W-0gH"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="PkA-I4-Eeo" secondAttribute="trailing" constant="20" symbolic="YES" id="ByS-AD-uKH"/>
-                            <constraint firstItem="PkA-I4-Eeo" firstAttribute="leading" secondItem="Qsh-Hx-foM" secondAttribute="trailing" constant="-1" id="S9d-vN-569"/>
+                            <constraint firstItem="PkA-I4-Eeo" firstAttribute="leading" secondItem="Qsh-Hx-foM" secondAttribute="trailing" constant="8" id="S9d-vN-569"/>
                             <constraint firstAttribute="trailing" secondItem="fZm-UD-Mz7" secondAttribute="trailing" constant="20" symbolic="YES" id="XDM-VO-X76"/>
                             <constraint firstAttribute="bottom" secondItem="PkA-I4-Eeo" secondAttribute="bottom" constant="20" id="dgq-WU-3LL"/>
                             <constraint firstItem="Qsh-Hx-foM" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" id="oP5-0l-e1v"/>
