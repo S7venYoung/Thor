@@ -13,6 +13,7 @@ import UniformTypeIdentifiers
 class ShortcutListViewController: NSViewController {
 
     private let dragDropType = NSPasteboard.PasteboardType(rawValue: "thor.drag-drop-app")
+    private let listGlassView = NSVisualEffectView()
 
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var btnAdd: NSButton!
@@ -27,7 +28,25 @@ class ShortcutListViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
+
+        configureListGlass()
+
+        tableView.backgroundColor = .clear
+        tableView.enclosingScrollView?.drawsBackground = false
+        tableView.enclosingScrollView?.contentView.drawsBackground = false
+        tableView.enclosingScrollView?.borderType = .noBorder
+        tableView.enclosingScrollView?.wantsLayer = true
+        tableView.enclosingScrollView?.layer?.backgroundColor = NSColor.clear.cgColor
+        tableView.usesAlternatingRowBackgroundColors = false
+        tableView.selectionHighlightStyle = .none
+        tableView.gridStyleMask = []
+        tableView.intercellSpacing = NSSize(width: 0, height: 8)
+        tableView.rowHeight = 54
+
+        configureCommandButton(btnAdd)
+        configureCommandButton(btnRemove)
 
         tableView.registerForDraggedTypes([dragDropType])
 
@@ -46,14 +65,19 @@ class ShortcutListViewController: NSViewController {
             openPanel.directoryURL = URL(fileURLWithPath: appDir)
         }
         openPanel.beginSheetModal(for: view.window!, completionHandler: { (result) in
-            if result == NSApplication.ModalResponse.OK, let metaDataItem = NSMetadataItem(url: openPanel.urls.first!) {
-                let app = AppModel(item: metaDataItem)
-
-                AppsManager.manager.save(app, shortcut: nil)
-
-                self.tableView.reloadData()
-                self.tableView.scrollRowToVisible(self.apps.count - 1)
+            guard result == .OK, let url = openPanel.urls.first else {
+                return
             }
+
+            let app = NSMetadataItem(url: url).flatMap { AppModel(item: $0) } ?? AppModel(url: url)
+            guard let app = app else {
+                return
+            }
+
+            AppsManager.manager.save(app, shortcut: nil)
+
+            self.tableView.reloadData()
+            self.tableView.scrollRowToVisible(self.apps.count - 1)
         })
     }
 
@@ -95,6 +119,10 @@ extension ShortcutListViewController: NSTableViewDataSource, NSTableViewDelegate
         }
 
         return cell
+    }
+
+    func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+        return GlassTableRowView()
     }
 
     // MARK: Drag and Drop
@@ -141,6 +169,61 @@ extension ShortcutListViewController: NSTableViewDataSource, NSTableViewDelegate
         }
 
         return true
+    }
+
+    private func configureListGlass() {
+        guard let scrollView = tableView.enclosingScrollView else { return }
+
+        listGlassView.blendingMode = .withinWindow
+        listGlassView.material = .contentBackground
+        listGlassView.state = .active
+        listGlassView.wantsLayer = true
+        listGlassView.layer?.cornerRadius = 20
+        listGlassView.layer?.masksToBounds = true
+        listGlassView.layer?.borderColor = NSColor.white.withAlphaComponent(0.28).cgColor
+        listGlassView.layer?.borderWidth = 0.7
+        listGlassView.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(listGlassView, positioned: .below, relativeTo: scrollView)
+        NSLayoutConstraint.activate([
+            listGlassView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            listGlassView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            listGlassView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            listGlassView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor)
+        ])
+    }
+
+    private func configureCommandButton(_ button: NSButton?) {
+        guard let button = button else { return }
+
+        button.isBordered = false
+        button.bezelStyle = .regularSquare
+        button.imageScaling = .scaleProportionallyDown
+        button.wantsLayer = true
+        button.layer?.backgroundColor = NSColor.controlBackgroundColor.withAlphaComponent(0.34).cgColor
+        button.layer?.borderColor = NSColor.white.withAlphaComponent(0.45).cgColor
+        button.layer?.borderWidth = 0.8
+        button.layer?.cornerRadius = 17
+        button.layer?.masksToBounds = true
+
+        if #available(macOS 10.14, *) {
+            button.contentTintColor = .labelColor
+        }
+
+        button.toolTip = button == btnAdd ? "Add application".localized() : "Remove selected application".localized()
+    }
+
+}
+
+private final class GlassTableRowView: NSTableRowView {
+
+    override func drawBackground(in dirtyRect: NSRect) {
+    }
+
+    override func drawSelection(in dirtyRect: NSRect) {
+    }
+
+    override func drawSeparator(in dirtyRect: NSRect) {
     }
 
 }

@@ -58,6 +58,18 @@ class AppModel: NSObject {
         self.appDisplayName = displayName
     }
 
+    init?(url: URL) {
+        guard let appBundle = Bundle(url: url) else {
+            return nil
+        }
+
+        self.appBundleURL = appBundle.bundleURL
+        self.appDisplayName = FileManager.default.displayName(atPath: appBundle.bundleURL.path)
+            .replacingOccurrences(of: ".app", with: "",
+                                  options: [.anchored, .caseInsensitive],
+                                  range: nil)
+    }
+
     init?(dict: NSDictionary) {
         guard let appBundle = dict.object(forKey: InfoKeys.appBundleURL.rawValue) as? String,
               let bundleURL = URL(string: appBundle), Bundle(url: bundleURL) != nil,

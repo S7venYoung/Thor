@@ -11,6 +11,9 @@ import Cocoa
 class TOLWindowController: NSWindowController {
 
     var titleView       = TitleView()
+    private let glassBackgroundView = NSVisualEffectView()
+    private let glassTintView = NSView()
+    private let contentHostView = NSView()
     var identifiers     = [NSToolbarItem.Identifier]()
     var items           = [NSToolbarItem.Identifier: NSToolbarItem]()
     var viewControllers = [String: NSViewController]()
@@ -18,17 +21,15 @@ class TOLWindowController: NSWindowController {
     override func windowDidLoad() {
         super.windowDidLoad()
 
-        window?.titlebarAppearsTransparent = true
-        window?.titleVisibility = .hidden
-        if #available(OSX 10.13, *) {
-            window?.backgroundColor = NSColor(named: windowbackgroundColorName)
-        } else {
-            window?.backgroundColor = .white
-        }
+        configureWindowAppearance()
 
         let toolbar = NSToolbar(identifier: "toolbar")
         toolbar.delegate = self
         toolbar.showsBaselineSeparator = false
+        toolbar.sizeMode = .regular
+        if #available(macOS 11.0, *) {
+            toolbar.displayMode = .iconOnly
+        }
         window?.toolbar = toolbar
 
         // title
@@ -68,16 +69,95 @@ class TOLWindowController: NSWindowController {
     }
 
     private func toggleViewControllers(_ item: TitleViewItem) {
-        if let contentViewController = contentViewController, contentViewController.children.count > 0 {
-            contentViewController.view.subviews.forEach { $0.removeFromSuperview() }
+        guard let contentViewController = contentViewController else {
+            return
+        }
+
+        if contentViewController.children.count > 0 {
             contentViewController.children.forEach { $0.removeFromParent() }
         }
 
-        if let viewController = viewControllers[item.identifier!.rawValue] {
-            contentViewController?.insertChild(viewController, at: 0)
-            contentViewController?.view.addSubview(viewController.view)
-            contentViewController?.view.frame = viewController.view.frame
+        contentHostView.subviews.forEach { $0.removeFromSuperview() }
+
+        if glassBackgroundView.superview == nil {
+            installGlassBackground(in: contentViewController.view)
         }
+
+        if let viewController = viewControllers[item.identifier!.rawValue] {
+            contentViewController.insertChild(viewController, at: 0)
+            contentHostView.addSubview(viewController.view)
+            viewController.view.frame = contentHostView.bounds
+            viewController.view.autoresizingMask = [.width, .height]
+        }
+    }
+
+    private func configureWindowAppearance() {
+        guard let window = window else { return }
+
+        window.styleMask.insert(.fullSizeContentView)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = true
+
+        if #available(macOS 11.0, *) {
+            window.toolbarStyle = .unifiedCompact
+        }
+
+        window.contentView?.wantsLayer = true
+        window.contentView?.layer?.cornerRadius = 28
+        window.contentView?.layer?.masksToBounds = true
+        window.contentView?.superview?.wantsLayer = true
+        window.contentView?.superview?.layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
+    private func installGlassBackground(in rootView: NSView) {
+        rootView.wantsLayer = true
+        rootView.layer?.backgroundColor = NSColor.clear.cgColor
+
+        glassBackgroundView.blendingMode = .behindWindow
+        glassBackgroundView.material = .hudWindow
+        glassBackgroundView.state = .active
+        glassBackgroundView.wantsLayer = true
+        glassBackgroundView.layer?.cornerRadius = 28
+        glassBackgroundView.layer?.masksToBounds = true
+        glassBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+
+        rootView.addSubview(glassBackgroundView, positioned: .below, relativeTo: nil)
+        NSLayoutConstraint.activate([
+            glassBackgroundView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            glassBackgroundView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            glassBackgroundView.topAnchor.constraint(equalTo: rootView.topAnchor),
+            glassBackgroundView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
+        ])
+
+        glassTintView.wantsLayer = true
+        glassTintView.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.18).cgColor
+        glassTintView.layer?.borderColor = NSColor.white.withAlphaComponent(0.35).cgColor
+        glassTintView.layer?.borderWidth = 0.8
+        glassTintView.layer?.cornerRadius = 28
+        glassTintView.layer?.masksToBounds = true
+        glassTintView.translatesAutoresizingMaskIntoConstraints = false
+        glassBackgroundView.addSubview(glassTintView, positioned: .below, relativeTo: nil)
+        NSLayoutConstraint.activate([
+            glassTintView.leadingAnchor.constraint(equalTo: glassBackgroundView.leadingAnchor),
+            glassTintView.trailingAnchor.constraint(equalTo: glassBackgroundView.trailingAnchor),
+            glassTintView.topAnchor.constraint(equalTo: glassBackgroundView.topAnchor),
+            glassTintView.bottomAnchor.constraint(equalTo: glassBackgroundView.bottomAnchor)
+        ])
+
+        contentHostView.wantsLayer = true
+        contentHostView.layer?.backgroundColor = NSColor.clear.cgColor
+        contentHostView.translatesAutoresizingMaskIntoConstraints = false
+        glassBackgroundView.addSubview(contentHostView, positioned: .above, relativeTo: glassTintView)
+        NSLayoutConstraint.activate([
+            contentHostView.leadingAnchor.constraint(equalTo: glassBackgroundView.leadingAnchor),
+            contentHostView.trailingAnchor.constraint(equalTo: glassBackgroundView.trailingAnchor),
+            contentHostView.topAnchor.constraint(equalTo: glassBackgroundView.topAnchor, constant: 52),
+            contentHostView.bottomAnchor.constraint(equalTo: glassBackgroundView.bottomAnchor)
+        ])
     }
 
 }
@@ -153,6 +233,8 @@ class TitleViewItem: NSButton {
 
         identifier = NSUserInterfaceItemIdentifier(rawValue: itemIdentifier)
         isBordered = false
+        bezelStyle = .rounded
+        imagePosition = .imageOnly
         setButtonType(.toggle)
     }
 

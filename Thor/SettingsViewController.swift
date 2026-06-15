@@ -22,7 +22,18 @@ class SettingsViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
+
+        if #available(macOS 10.14, *) {
+            [
+                btnLaunchAtLogin,
+                btnEnableShortcut,
+                btnEnableMenuBarIcon,
+                btnEnableMenuBarIconShowHideKey,
+                btnEnableDeactivateKey
+            ].forEach { $0?.contentTintColor = .labelColor }
+        }
 
         btnLaunchAtLogin.state = LaunchAtLogin.isEnabled ? .on : .off
 
